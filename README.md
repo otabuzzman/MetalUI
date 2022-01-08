@@ -1,30 +1,44 @@
 # MetalUI
-Metal with SwiftUI
+Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.com/quick-start/swiftui/how-to-wrap-a-custom-uiview-for-swiftui) to support Metal in SwiftUI.
 
-## Example Usage
+## Concept
+The wrapper takes the closure of a *Presenter* on initialization. The *Presenter* is a subclass of `MKTView` (MetalKit View) which implements the View protocol. A *Renderer* called by the *Presenter* does the actual drawing into the view.
 
-### SwiftUI
+Metal Shader Language (MSL) files may be supplied as resources. This may be useful with Swift Playgrounds 4 (SP4) on iPad since there is no support for Metal files and thus `MTKDevice.makeDefaultLibrary()` will return `nil`. Using this feature requires file suffixes of exactly three characters. The example code suggests `.msl` though any other 3-character sequence might do as well. On using the common `.metal` suffix SP4 will report an unknown resource file error.
+
+## Usage
+- Create App with SP4
+- Import package repository
+  
+  **From code given below:**
+- Update `ContentView.swift` to use wrapper
+- Prepare and import Metal files `*.msl`
+- Create `AppPresenter.swift`
+- Create `AppRenderer.swift`
+
+### ContentView.swift
 ```swift
 import MetalUI
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        MetalView {
-            BasicMetalView()
+        VStack {
+            MUIView {
+                AppPresenter()
+            }
         }
     }
 }
-
 ```
 
-### BasicMetalView
+### AppPresenter.swift
 ```swift
-import MetalUI
 import MetalKit
+import MetalUI
 
-class BasicMetalView: MTKView, MetalPresenting {
-    var renderer: MetalRendering!
+class AppPresenter: MTKView, MUIPresenter {
+    var renderer: MUIRenderer!
     
     required init() {
         super.init(frame: .zero, device: MTLCreateSystemDefaultDevice())
@@ -37,31 +51,30 @@ class BasicMetalView: MTKView, MetalPresenting {
     
     func configureMTKView() {
         colorPixelFormat = .bgra8Unorm
-        // Our clear color, can be set to any color
-        clearColor = MTLClearColor(red: 1, green: 0.57, blue: 0.25, alpha: 1)
+        clearColor = MTLClearColor(red: 0.3, green: 0.1, blue: 0.2, alpha: 1)
     }
     
-    func renderer(forDevice device: MTLDevice) -> MetalRendering {
-        BasicMetalRenderer(vertices: [
-            MetalRenderingVertex(position: SIMD3(0,1,0), color: SIMD4(1,0,0,1)),
-            MetalRenderingVertex(position: SIMD3(-1,-1,0), color: SIMD4(0,1,0,1)),
-            MetalRenderingVertex(position: SIMD3(1,-1,0), color: SIMD4(0,0,1,1))
+    func renderer(forDevice device: MTLDevice) -> MUIRenderer {
+        AppRenderer(vertices: [
+            MUIVertex(position: SIMD3(0,1,0),   color: SIMD4(1,0,0,1)),
+            MUIVertex(position: SIMD3(-1,-1,0), color: SIMD4(0,1,0,1)),
+            MUIVertex(position: SIMD3(1,-1,0),  color: SIMD4(0,0,1,1))
         ], device: device)
     }
 }
 ```
 
-### BasicMetalRenderer
+### AppRenderer.swift
 ```swift
-import MetalUI
 import MetalKit
+import MetalUI
 
-final class BasicMetalRenderer: NSObject, MetalRendering {
-    var commandQueue: MTLCommandQueue?
+final class AppRenderer: NSObject, MUIRenderer {
+    var commandQueue:        MTLCommandQueue?
     var renderPipelineState: MTLRenderPipelineState?
-    var vertexBuffer: MTLBuffer?
+    var vertexBuffer:        MTLBuffer?
     
-    var vertices: [MetalRenderingVertex] = []
+    var vertices: [MUIVertex] = []
     
     func createCommandQueue(device: MTLDevice) {
         commandQueue = device.makeCommandQueue()
@@ -71,18 +84,20 @@ final class BasicMetalRenderer: NSObject, MetalRendering {
         withLibrary library: MTLLibrary?,
         forDevice device: MTLDevice
     ) {
-        // Our vertex function name
-        let vertexFunction = library?.makeFunction(name: "basic_vertex_function")
-        // Our fragment function name
-        let fragmentFunction = library?.makeFunction(name: "basic_fragment_function")
-        // Create basic descriptor
+        var vertexFunction: MTLFunction?
+        var fragmentFunction: MTLFunction?
+        if (library == nil) {
+            let mtllibrary   = MUILibrary(device: device)
+            vertexFunction   = mtllibrary.makeFunction(name: "vert_function")
+            fragmentFunction = mtllibrary.makeFunction(name: "frag_function")
+        } else {
+            vertexFunction   = library?.makeFunction(name: "vert_function")
+            fragmentFunction = library?.makeFunction(name: "frag_function")
+        }
         let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
-        // Attach the pixel format that si the same as the MetalView
         renderPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
-        // Attach the shader functions
-        renderPipelineDescriptor.vertexFunction = vertexFunction
-        renderPipelineDescriptor.fragmentFunction = fragmentFunction
-        // Try to update the state of the renderPipeline
+        renderPipelineDescriptor.vertexFunction                  = vertexFunction
+        renderPipelineDescriptor.fragmentFunction                = fragmentFunction
         do {
             renderPipelineState = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
         } catch {
@@ -92,29 +107,24 @@ final class BasicMetalRenderer: NSObject, MetalRendering {
     
     func createBuffers(device: MTLDevice) {
         vertexBuffer = device.makeBuffer(bytes: vertices,
-                                         length: MemoryLayout<MetalRenderingVertex>.stride * vertices.count,
+                                         length: MemoryLayout<MUIVertex>.stride * vertices.count,
                                          options: [])
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        
-    }
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
     
     func draw(in view: MTKView) {
         // Get the current drawable and descriptor
-        guard let drawable = view.currentDrawable,
+        guard let drawable             = view.currentDrawable,
               let renderPassDescriptor = view.currentRenderPassDescriptor,
-              let commandQueue = commandQueue,
-              let renderPipelineState = renderPipelineState else {
+              let commandQueue         = commandQueue,
+              let renderPipelineState  = renderPipelineState else {
             return
         }
-        // Create a buffer from the commandQueue
-        let commandBuffer = commandQueue.makeCommandBuffer()
+        let commandBuffer  = commandQueue.makeCommandBuffer()
         let commandEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
         commandEncoder?.setRenderPipelineState(renderPipelineState)
-        // Pass in the vertexBuffer into index 0
         commandEncoder?.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        // Draw primitive at vertextStart 0
         commandEncoder?.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
         
         commandEncoder?.endEncoding()
@@ -124,27 +134,44 @@ final class BasicMetalRenderer: NSObject, MetalRendering {
 }
 ```
 
-### Shaders.metal
+### frag.msl
 ```metal
 #include <metal_stdlib>
+
 using namespace metal;
 
-struct VertexIn {
-    float3 position;
-    float4 color;
-};
 struct VertexOut {
     float4 position [[ position ]];
     float4 color;
 };
-vertex VertexOut basic_vertex_function(const device VertexIn *vertices [[ buffer(0) ]],
+
+fragment float4 frag_function(VertexOut vIn [[ stage_in ]]) {
+    return vIn.color;
+}
+```
+
+### vert.msl
+```metal
+#include <metal_stdlib>
+    
+using namespace metal;
+    
+struct VertexIn {
+    float3 position;
+    float4 color;
+};
+    
+struct VertexOut {
+    float4 position [[ position ]];
+    float4 color;
+};
+    
+vertex VertexOut vert_function(const device VertexIn *vertices [[ buffer(0) ]],
                                        uint vertexID [[ vertex_id  ]]) {
     VertexOut vOut;
     vOut.position = float4(vertices[vertexID].position,1);
-    vOut.color = vertices[vertexID].color;
+    vOut.color    = vertices[vertexID].color;
+    
     return vOut;
-}
-fragment float4 basic_fragment_function(VertexOut vIn [[ stage_in ]]) {
-    return vIn.color;
 }
 ```
