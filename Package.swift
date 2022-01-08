@@ -25,8 +25,5 @@ let package = Package(
         .target(
             name: "MetalUI",
             dependencies: []),
-        .testTarget(
-            name: "MetalUITests",
-            dependencies: ["MetalUI"]),
     ]
 )
