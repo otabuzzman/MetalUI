@@ -1,22 +1,20 @@
 import MetalKit
-
-public protocol MetalPresenting: MTKView {
-    var renderer: MetalRendering! { get set }
+    
+public protocol MUIPresenter: MTKView {
+    var renderer: MUIRenderer! { get set }
     
     init()
     
     func configure(device: MTLDevice?)
     
     func configureMTKView()
-    func renderer(forDevice device: MTLDevice) -> MetalRendering
+    func renderer(forDevice device: MTLDevice) -> MUIRenderer
 }
-
-public extension MetalPresenting {
     
+public extension MUIPresenter {
     func configure(device: MTLDevice? = MTLCreateSystemDefaultDevice()) {
-        // Make sure we are on a device that can run metal!
         guard let defaultDevice = device else {
-            fatalError("Device loading error")
+            fatalError("initialize GPU failed")
         }
         
         self.renderer = renderer(forDevice: defaultDevice)
