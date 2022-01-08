@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "MetalUI",
     platforms: [
-        .iOS(.v13),
+        .iOS(.v13), // .v15 requires Swift 5.5
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
