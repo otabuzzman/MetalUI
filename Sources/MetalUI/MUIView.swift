@@ -1,7 +1,7 @@
 import MetalKit
 import SwiftUI
     
-public struct MUIView<Content>: UIViewRepresentable where Content: MUIPresenting {
+public struct MUIView<Content>: UIViewRepresentable where Content: MUIPresenter {
     public var wrappedView: Content
     
     private var handleMakeUIView:   ((Context) -> Content)?
