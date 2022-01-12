@@ -24,7 +24,7 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         VStack {
-            MUIView {
+            MUIView { // https://www.hackingwithswift.com/sixty/6/5/trailing-closure-syntax
                 AppPresenter()
             }
         }
