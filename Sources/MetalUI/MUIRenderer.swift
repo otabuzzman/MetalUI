@@ -29,4 +29,14 @@ public extension MUIRenderer {
         createPipelineState(withLibrary: device.makeDefaultLibrary(), forDevice: device)
         createBuffers(device: device)
     }
+
+    func makeFunction(fromMTLLibraries libraries: [MTLLibrary], name: String) -> MTLFunction? {
+        for mtlLibrary in libraries {
+            if (mtlLibrary.functionNames.contains(name)) {
+                return mtlLibrary.makeFunction(name: name)
+            }
+        }
+        
+        return nil
+    }
 }

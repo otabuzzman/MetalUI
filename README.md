@@ -87,9 +87,11 @@ final class AppRenderer: NSObject, MUIRenderer {
         var vertexFunction: MTLFunction?
         var fragmentFunction: MTLFunction?
         if (library == nil) {
-            let mtllibrary   = MUILibrary(device: device)
-            vertexFunction   = mtllibrary.makeFunction(name: "vert_function")
-            fragmentFunction = mtllibrary.makeFunction(name: "frag_function")
+            guard let mtllibrary = device.makeLibrary(fromResourcesWithSuffixes: ["msl"]) else {
+                fatalError("no shader programs")
+            }
+            vertexFunction = makeFunction(fromMTLLibraries: mtllibrary, name: "vert_function")
+            fragmentFunction = makeFunction(fromMTLLibraries: mtllibrary, name: "frag_function")
         } else {
             vertexFunction   = library?.makeFunction(name: "vert_function")
             fragmentFunction = library?.makeFunction(name: "frag_function")
@@ -101,7 +103,7 @@ final class AppRenderer: NSObject, MUIRenderer {
         do {
             renderPipelineState = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
         } catch {
-            print(error.localizedDescription)
+            fatalError(error.localizedDescription)
         }
     }
     
@@ -119,8 +121,8 @@ final class AppRenderer: NSObject, MUIRenderer {
               let renderPassDescriptor = view.currentRenderPassDescriptor,
               let commandQueue         = commandQueue,
               let renderPipelineState  = renderPipelineState else {
-            return
-        }
+                  return
+              }
         let commandBuffer  = commandQueue.makeCommandBuffer()
         let commandEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
         commandEncoder?.setRenderPipelineState(renderPipelineState)
