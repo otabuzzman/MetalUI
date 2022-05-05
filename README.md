@@ -1,10 +1,5 @@
 # MetalUI
-Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.com/quick-start/swiftui/how-to-wrap-a-custom-uiview-for-swiftui) to support Metal in SwiftUI.
-
-## Concept
-The wrapper takes the closure of a *Presenter* on initialization. The *Presenter* is a subclass of `MKTView` (MetalKit View) which implements the View protocol. A *Renderer* called by the *Presenter* does the actual drawing into the view.
-
-Metal Shader Language (MSL) files may be supplied as resources. This may be useful with Swift Playgrounds 4 (SP4) on iPad since there is no support for Metal files and thus `MTKDevice.makeDefaultLibrary()` will return `nil`. Using this feature requires file suffixes of exactly three characters. The example code suggests `.msl` though any other 3-character sequence might do as well. On using the common `.metal` suffix SP4 will report an unknown resource file error.
+Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.com/quick-start/swiftui/how-to-wrap-a-custom-uiview-for-swiftui) to support Metal in SwiftUI. Renders a colored triangle, the _Hello World_ in graphics programming.
 
 ## Usage
 - Create App with SP4
@@ -24,7 +19,7 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         VStack {
-            MUIView { // https://www.hackingwithswift.com/sixty/6/5/trailing-closure-syntax
+            MUIView {
                 AppPresenter()
             }
         }
