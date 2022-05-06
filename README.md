@@ -2,7 +2,9 @@
 Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.com/quick-start/swiftui/how-to-wrap-a-custom-uiview-for-swiftui) to support Metal in SwiftUI. Renders a colored triangle, the _Hello World_ in graphics programming.
 
 ## Usage
-- Create App with SP4
+- Create App with SP4<br>
+  Name must differ from _MetalUI_
+
 - Import package repository
   
   **From code given below:**
