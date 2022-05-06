@@ -4,7 +4,6 @@ Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.co
 ## Usage
 - Create App with SP4<br>
   Name must differ from _MetalUI_
-
 - Import package repository
   
   **From code given below:**
