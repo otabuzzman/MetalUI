@@ -8,9 +8,9 @@ Metal for SwiftUI. A [custom wrapper for UIView](https://www.hackingwithswift.co
   
   **From code given below:**
 - Update `ContentView.swift` to use wrapper
-- Prepare and import Metal files `*.msl`
 - Create `AppPresenter.swift`
 - Create `AppRenderer.swift`
+- Prepare and import Metal files `*.msl`
 
 ### ContentView.swift
 ```swift
