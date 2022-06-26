@@ -173,3 +173,6 @@ vertex VertexOut vert_function(const device VertexIn *vertices [[ buffer(0) ]],
     return vOut;
 }
 ```
+
+### Result
+<img src="triangle.png" alt="triangle" width="512"/>
